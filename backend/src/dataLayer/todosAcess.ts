@@ -5,8 +5,8 @@ import { createLogger } from '../utils/logger'
 import { TodoItem } from '../models/TodoItem'
 import { TodoUpdate } from '../models/TodoUpdate'
 
-// const XAWS = AWSXRay.captureAWS(AWS)
 
+const XAWS = AWSXRay.captureAWS(AWS)
 const logger = createLogger('TodosAccess')
 
 // TODO: Implement the dataLayer logic
@@ -105,8 +105,8 @@ export async function updateAttachmentUrl(
 }
 
 function createDynamoDBClient(): DocumentClient {
-  // XAWS.DynamoDB.DocumentClient() error
-  const service = new AWS.DynamoDB()
+  
+  const service = new XAWS.DynamoDB()
   const client = new AWS.DynamoDB.DocumentClient({
     service: service
   })
