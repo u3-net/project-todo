@@ -6,6 +6,8 @@ plugins:
   - serverless-webpack
   - serverless-iam-roles-per-function
   - serverless-plugin-tracing
+  - serverless-reqvalidator-plugin
+  - serverless-aws-documentation
 
 provider:
   name: aws
@@ -24,7 +26,7 @@ provider:
   environment:
     TODOS_TABLE: Todos-${self:provider.stage}
     TODOS_CREATED_AT_INDEX: CreatedAtIndex
-    ATTACHMENT_S3_BUCKET: serverless-c4-todo-images-${self:provider.stage}-vietanht
+    ATTACHMENT_S3_BUCKET: serverless-c4-todo-images-${self:provider.stage}-u3net
     SIGNED_URL_EXPIRATION: 300
 
   logs:
@@ -39,6 +41,21 @@ provider:
             - xray:PutTelemetryRecords
             - xray:PutTraceSegments
           Resource: '*'
+  
+custom:
+  documentation:
+    api:
+      info:
+        version: v1.0.0
+        title: Serverless Todo API
+        description: Serverless application for TODOs
+    models:
+      - name: CreateTodoValidator
+        contentType: application/json
+        schema: ${file(models/create-todo-model.json)}
+      - name: UpdateTodoValidator
+        contentType: application/json
+        schema: ${file(models/update-todo-model.json)}
 
 functions:
   Auth:
@@ -135,6 +152,8 @@ functions:
 
 resources:
   Resources:
+    
+            
     # Add necessary AWS resources. You will need at least the following AWS resources
     # Feel free to change the names as you like.
     GatewayResponseDefault4XX:
@@ -175,6 +194,14 @@ resources:
                 KeyType: RANGE
             Projection:
               ProjectionType: ALL # What attributes will be copied to an index
+    RequestBodyValidator:
+      Type: AWS::ApiGateway::RequestValidator
+      Properties:
+        Name: 'request-body-validator'
+        RestApiId:
+          Ref: ApiGatewayRestApi
+        ValidateRequestBody: true
+        ValidateRequestParameters: false
 
     # Do not forget to add the CorsConfiguration propoerty
     AttachmentsBucket:
@@ -209,3 +236,4 @@ resources:
               Action: '*'
               Resource: 'arn:aws:s3:::${self:provider.environment.ATTACHMENT_S3_BUCKET}/*'
         Bucket: !Ref AttachmentsBucket
+        
